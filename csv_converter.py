@@ -60,31 +60,33 @@ class CSVConverter:
         
         return output_path
     
-    def convert_structured_data_to_csv(self, structured_data: List[Dict], filename: str, image_name: str) -> str:
+    def read_csv_content(self, csv_path: str) -> str:
         """
-        Converte dados estruturados para CSV.
+        Lê o conteúdo de um arquivo CSV e retorna o texto concatenado.
         
         Args:
-            structured_data: Lista de dicionários com os dados
-            filename: Nome do arquivo CSV de saída
-            image_name: Nome da imagem original
+            csv_path: Caminho para o arquivo CSV
             
         Returns:
-            Caminho completo do arquivo CSV gerado
+            Texto concatenado das linhas do CSV
         """
-        # Adiciona metadados
-        for item in structured_data:
-            item['imagem_origem'] = image_name
-            item['data_extracao'] = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-        
-        # Cria DataFrame
-        df = pd.DataFrame(structured_data)
-        
-        # Salva como CSV
-        output_path = os.path.join(self.output_dir, filename)
-        df.to_csv(output_path, index=False, encoding='utf-8-sig', sep=';')
-        
-        return output_path
+        try:
+            df = pd.read_csv(csv_path, sep=';', encoding='utf-8-sig')
+            
+            # Extrai apenas a coluna 'Conteúdo' se existir
+            if 'Conteúdo' in df.columns:
+                text_lines = df['Conteúdo'].dropna().tolist()
+                return '\n'.join(str(line) for line in text_lines)
+            else:
+                # Se não houver coluna específica, junta todas as colunas de texto
+                text_content = []
+                for _, row in df.iterrows():
+                    row_text = ' '.join(str(value) for value in row.values if pd.notna(value))
+                    text_content.append(row_text)
+                return '\n'.join(text_content)
+                
+        except Exception as e:
+            raise Exception(f"Erro ao ler o arquivo CSV: {str(e)}")
     
     def create_summary_csv(self, image_name: str, text: str, output_file: str) -> str:
         """

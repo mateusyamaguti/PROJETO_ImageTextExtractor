@@ -20,8 +20,39 @@ class OCRProcessor:
         Args:
             tesseract_path: Caminho para o executável do Tesseract (Windows)
         """
-        if tesseract_path and os.path.exists(tesseract_path):
-            pytesseract.pytesseract.tesseract_cmd = tesseract_path
+        self._setup_tesseract_path(tesseract_path)
+    
+    def _setup_tesseract_path(self, custom_path: Optional[str] = None) -> None:
+        """
+        Configura o caminho do executável do Tesseract.
+        
+        Args:
+            custom_path: Caminho personalizado para o Tesseract
+        """
+        # Lista de caminhos comuns do Tesseract no Windows
+        common_paths = [
+            r"C:\Program Files\Tesseract-OCR\tesseract.exe",
+            r"C:\Program Files (x86)\Tesseract-OCR\tesseract.exe",
+            r"C:\Users\%s\AppData\Local\Tesseract-OCR\tesseract.exe" % os.getenv('USERNAME', ''),
+            r"C:\tesseract\tesseract.exe"
+        ]
+        
+        # Se um caminho personalizado foi fornecido, testa primeiro
+        if custom_path:
+            common_paths.insert(0, custom_path)
+        
+        # Tenta encontrar o Tesseract
+        tesseract_found = False
+        
+        for path in common_paths:
+            if os.path.exists(path):
+                pytesseract.pytesseract.tesseract_cmd = path
+                tesseract_found = True
+                print(f"✅ Tesseract encontrado em: {path}")
+                break
+        
+        if not tesseract_found:
+            print("⚠️  Tesseract não encontrado automaticamente.")
     
     def preprocess_image(self, image_path: str) -> np.ndarray:
         """

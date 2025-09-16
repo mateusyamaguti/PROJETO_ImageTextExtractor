@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 """
 ImageTextExtractor - Programa principal
-Extrai texto de imagens usando OCR e converte para CSV.
+Extrai texto de imagens usando OCR, converte para CSV e corrige com IA.
 
 Autor: [Mateus Xavier Yamaguti]
-Data: [09/09/2025]
-Versão: 1.0
+Data: [16/09/2025]
+Versão: 3.0
 """
 
 import os
@@ -27,7 +27,6 @@ class ImageTextExtractor:
         self.output_dir = "output"
         
         # Inicializa o processador OCR com o caminho do Tesseract
-        # Se você instalou em um local diferente, altere aqui:
         tesseract_path = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
         self.ocr_processor = OCRProcessor(tesseract_path)
         
@@ -100,10 +99,10 @@ class ImageTextExtractor:
             Nome da imagem escolhida ou None se cancelar
         """
         while True:
-            print(f"\n🔍 Digite o nome da imagem (ou 'sair' para encerrar):")
+            print(f"\n🔍 Digite o nome da imagem (ou 'voltar' para menu principal):")
             choice = input("➤ ").strip()
             
-            if choice.lower() in ['sair', 'exit', 'quit']:
+            if choice.lower() in ['voltar', 'back', 'menu']:
                 return None
             
             # Verifica se a imagem existe
@@ -178,16 +177,43 @@ class ImageTextExtractor:
         """Exibe o banner do programa."""
         banner = """
 ╔══════════════════════════════════════════════════════════╗
-║                  ImageTextExtractor                      ║
-║              Extração de Texto de Imagens               ║
-║                     versão 1.0                          ║
+║              ImageTextExtractor v3.0                    ║
+║         Extração de Texto + Correção por IA             ║
+║              OCR → CSV → AI Correction                   ║
 ╚══════════════════════════════════════════════════════════╝
         """
         print(banner)
     
-    def run(self) -> None:
-        """Executa o programa principal."""
-        self.display_banner()
+    def main_menu(self) -> None:
+        """Exibe o menu principal do sistema."""
+        while True:
+            print("\n" + "="*50)
+            print("📋 MENU PRINCIPAL")
+            print("="*50)
+            print("1 - 📸 Processar imagens (OCR → CSV)")
+            print("2 - 🤖 Corrigir textos com IA")
+            print("0 - 🚪 Sair")
+            print("="*50)
+            
+            try:
+                choice = int(input("➤ Escolha uma opção: "))
+            except ValueError:
+                print("❌ Entrada inválida! Digite apenas números.")
+                continue
+            
+            if choice == 1:
+                self.run_ocr_mode()
+            elif choice == 2:
+                self.run_ai_correction()
+            elif choice == 0:
+                print("\n👋 Encerrando o programa. Até logo!")
+                break
+            else:
+                print("❌ Opção inválida! Escolha 1, 2 ou 0.")
+    
+    def run_ocr_mode(self) -> None:
+        """Executa o modo de processamento de imagens OCR."""
+        print("\n🔍 Modo: Processamento de Imagens")
         
         while True:
             # Lista as imagens disponíveis
@@ -195,14 +221,14 @@ class ImageTextExtractor:
             self._display_available_images(available_images)
             
             if not available_images:
-                print(f"\n💡 Adicione imagens na pasta '{self.img_dir}' e execute novamente.")
+                print(f"\n💡 Adicione imagens na pasta '{self.img_dir}' e tente novamente.")
+                input("Pressione Enter para voltar ao menu principal...")
                 break
             
             # Solicita escolha do usuário
             chosen_image = self._get_user_choice(available_images)
             
             if chosen_image is None:
-                print("\n👋 Encerrando o programa. Até logo!")
                 break
             
             # Processa a imagem escolhida
@@ -214,34 +240,47 @@ class ImageTextExtractor:
                 continue_choice = input("➤ ").strip().lower()
                 
                 if continue_choice not in ['s', 'sim', 'y', 'yes']:
-                    print("\n👋 Programa encerrado. Obrigado!")
                     break
             else:
-                print(f"\n🔄 Voltando ao menu principal...")
+                print(f"\n🔄 Voltando à lista de imagens...")
+    
+    def run_ai_correction(self) -> None:
+        """Executa o modo de correção por IA."""
+        load_dotenv()
+        
+        api_key = os.getenv("API_KEY")
+        
+        if not api_key:
+            print("\n❌ Erro: Chave da API do Google não encontrada!")
+            print("💡 Passos para configurar:")
+            print("   1. Crie um arquivo .env na pasta do projeto")
+            print("   2. Adicione: API_KEY=sua_chave_aqui")
+            print("   3. Obtenha sua chave em: https://aistudio.google.com/app/apikey")
+            input("\nPressione Enter para voltar ao menu principal...")
+            return
+        
+        try:
+            app = Application(api_key=api_key)
+            app.menu()
+        except Exception as e:
+            print(f"❌ Erro na aplicação de IA: {str(e)}")
+            input("Pressione Enter para voltar ao menu principal...")
+
 
 def main():
     """Função principal do programa."""
     try:
         extractor = ImageTextExtractor()
-        extractor.run()
+        extractor.display_banner()
+        extractor.main_menu()
+        
     except KeyboardInterrupt:
         print("\n\n⚠️  Programa interrompido pelo usuário.")
     except Exception as e:
         print(f"\n❌ Erro inesperado: {str(e)}")
     finally:
-        print("\n🏁 Fim da execução.")
+        print("\n🏁 Obrigado por usar o ImageTextExtractor!")
 
-    """Aplicação de IA para conversão de texto"""
-    load_dotenv()
-    
-    api_key = os.getenv("API_KEY")
-
-    if not api_key:
-        raise ValueError("A variável de ambiente API_KEY não foi definida! "
-                         "Crie um arquivo .env baseado em .env.example.")
-    
-    app = Application(api_key=api_key)
-    app.menu()
 
 if __name__ == "__main__":
     main()
