@@ -11,10 +11,12 @@ Versão: 1.0
 import os
 import sys
 from typing import Optional
+from dotenv import load_dotenv
 
 # Importa os módulos personalizados
 from ocr_processor import OCRProcessor
 from csv_converter import CSVConverter
+from ai_application import Application
 
 class ImageTextExtractor:
     """Classe principal do sistema de extração de texto de imagens."""
@@ -228,6 +230,18 @@ def main():
         print(f"\n❌ Erro inesperado: {str(e)}")
     finally:
         print("\n🏁 Fim da execução.")
+
+    """Aplicação de IA para conversão de texto"""
+    load_dotenv()
+    
+    api_key = os.getenv("API_KEY")
+
+    if not api_key:
+        raise ValueError("A variável de ambiente API_KEY não foi definida! "
+                         "Crie um arquivo .env baseado em .env.example.")
+    
+    app = Application(api_key=api_key)
+    app.menu()
 
 if __name__ == "__main__":
     main()
