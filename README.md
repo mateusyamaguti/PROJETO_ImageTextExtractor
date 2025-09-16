@@ -37,8 +37,7 @@ google-genai==0.4.0
 API_KEY=sua_chave_api_aqui
 ```
 
-## 3. README.md
-```markdown
+
 # ImageTextExtractor com Correção por IA
 
 ## Descrição
@@ -81,4 +80,3 @@ conversão para CSV e correção automática do texto usando IA do Google Gemini
 - ✅ Correção de texto por IA (Google Gemini)
 - ✅ Separação automática de palavras grudadas
 - ✅ Interface integrada e amigável
-```
